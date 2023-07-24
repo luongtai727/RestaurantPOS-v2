@@ -73,6 +73,7 @@ class ManagerCategoryComponentFragment(position: Int, var category: CategoryEnti
         }
 
 
+
     }
 
     private fun showMessage(content: String) {
@@ -194,7 +195,6 @@ class ManagerCategoryComponentFragment(position: Int, var category: CategoryEnti
         showDeleteItemDialog(itemCategory)
     }
 
-
     /** Update Item */
     @SuppressLint("SetTextI18n", "MissingInflatedId")
     private fun showChangeItemDialog(itemOfCategory: ItemEntity) {
@@ -221,6 +221,15 @@ class ManagerCategoryComponentFragment(position: Int, var category: CategoryEnti
         val txtUpdateItem = view.findViewById<TextView>(R.id.txtUpdateItem)
 
 
+        viewModel.isDuplicate.observe(viewLifecycleOwner) {
+            if (it) {
+                txtInform.text = "This item's name may already exist \n in your category!"
+                txtInform.show()
+            } else {
+                dialog.dismiss()
+            }
+        }
+
         // 2.  Code cho dau X & Cancel Button
         imgClose.setOnClickListener { dialog.dismiss() }
         btnCancel.setOnClickListener { dialog.dismiss() }
@@ -242,7 +251,6 @@ class ManagerCategoryComponentFragment(position: Int, var category: CategoryEnti
         /** Ràng buộc data */
         DataUtil.setEditTextWithoutSpecialCharacters(edtItemName, txtInform)
 
-
         btnUpdateItem.setOnClickListener {
 
             if (selectedImagePath != "") {
@@ -253,13 +261,17 @@ class ManagerCategoryComponentFragment(position: Int, var category: CategoryEnti
                 && edtItemPrice.text.toString() != ""
                 && edtItemInventoryQuantity.text.toString() != ""
             ) {
-                if (edtItemPrice.text.toString()
-                        .toFloat() != 0.0f && edtItemInventoryQuantity.text.toString()
-                        .toInt() != 0
-                ) {
-                    itemOfCategory.price = edtItemPrice.text.toString().toFloat()
-                    itemOfCategory.inventory_quantity =
-                        edtItemInventoryQuantity.text.toString().toInt()
+
+                val priceString = edtItemPrice.text.toString()
+                val price = priceString.replace(",", ".").toFloat()
+
+                val quantityString = edtItemInventoryQuantity.text.toString()
+                val quantity = quantityString.replace(",", ".0").toFloat()
+
+                if (price != 0.0f && quantity.toInt() != 0) {
+
+                    itemOfCategory.price = price
+                    itemOfCategory.inventory_quantity = quantity.toInt()
 
                     if (edtItemName.text.length >= 2) {
 
@@ -267,24 +279,13 @@ class ManagerCategoryComponentFragment(position: Int, var category: CategoryEnti
                             Log.d("Quanglt", "$itemOfCategory")
                             viewModel.addCategoryItem(itemOfCategory)
                             dialog.dismiss()
-
                         }
-                        else
-                        {
+                        else {
+                            itemOfCategory.item_name = edtItemName.text.trim().toString()
+
                             viewModel.addCategoryItemAndCheckExisting(itemOfCategory)
                             Log.d("Quanglt", "$itemOfCategory")
-                            viewModel.isDuplicate.observe(viewLifecycleOwner) {
-                                if (it) {
-                                    txtInform.text = "This item's name may already exist \n in your category!"
-                                    txtInform.show()
-                                } else {
-                                    itemOfCategory.item_name = edtItemName.text.trim().toString()
-                                    Log.d("Quanglt", "$itemOfCategory")
-                                    Log.d("Quanglt", edtItemName.text.trim().toString())
 
-                                    dialog.dismiss()
-                                }
-                            }
                         }
 
                     } else {
