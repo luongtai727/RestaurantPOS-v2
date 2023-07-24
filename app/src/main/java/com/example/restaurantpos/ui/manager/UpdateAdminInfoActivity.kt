@@ -26,7 +26,7 @@ class UpdateAdminInfoActivity : AppCompatActivity() {
     val startMonth = calendar.get(Calendar.MONTH) - 5
     val startDay = calendar.get(Calendar.DAY_OF_MONTH) - 10
     lateinit var  accountEntity: AccountEntity
-
+    var name: String = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUpdateAccountInfoBinding.inflate(layoutInflater)
@@ -90,6 +90,7 @@ class UpdateAdminInfoActivity : AppCompatActivity() {
 
         binding.txtUpdate.setOnClickListener {
            val isNoEditUsername = accountEntity.user_name.equals(binding.edtUserName.text.toString())
+            name = accountEntity.user_name
 
             if (binding.edtAdminName.text.toString() != "") {
                 accountEntity.account_name = binding.edtAdminName.text.toString()
@@ -119,6 +120,7 @@ class UpdateAdminInfoActivity : AppCompatActivity() {
             .observe(this) {
                 if (it){
                     showToast("username already exists!")
+                    accountEntity.user_name = name
                 }else{
                     showToast("Account' information was updated successfully!")
                     SharedPreferencesUtils.setAccountName(accountEntity.account_name)

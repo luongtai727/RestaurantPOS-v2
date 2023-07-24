@@ -30,6 +30,7 @@ class UpdateStaffInfoFragment : Fragment() {
     val startYear = calendar.get(Calendar.YEAR) - 20
     val startMonth = calendar.get(Calendar.MONTH) - 5
     val startDay = calendar.get(Calendar.DAY_OF_MONTH) - 10
+    var name: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,6 +104,7 @@ class UpdateStaffInfoFragment : Fragment() {
         binding.txtUpdate.setOnClickListener {
 
             val isNoEditUsername = accountEntity.account_name.equals(binding.edtStaffName.text.toString())
+            name = accountEntity.user_name
 
             if (binding.edtStaffName.text.toString() != "") {
                 accountEntity.account_name = binding.edtStaffName.text.toString()
@@ -132,6 +134,7 @@ class UpdateStaffInfoFragment : Fragment() {
             .observe(viewLifecycleOwner) {
                 if (it){
                     showToast("username already exists!")
+                    accountEntity.user_name = name
                 }else{
                     showToast("Account' information was updated successfully!")
 
