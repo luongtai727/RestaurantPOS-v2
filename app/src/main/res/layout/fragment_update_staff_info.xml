@@ -101,12 +101,21 @@
 
             <EditText
                 android:id="@+id/edtBirthday"
-                android:layout_width="match_parent"
+                android:layout_width="@dimen/_150sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:background="@drawable/bg_edt_login"
                 android:paddingStart="@dimen/_18sdp"
                 android:maxLength="16"
                 tools:ignore="RtlSymmetry" />
+
+            <ImageView
+                android:id="@+id/imgDate"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:src="@drawable/ic_calendar"
+                app:tint="@color/black" />
 
         </LinearLayout>
 

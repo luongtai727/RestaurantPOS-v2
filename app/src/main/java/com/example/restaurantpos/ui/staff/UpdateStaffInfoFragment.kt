@@ -1,5 +1,6 @@
 package com.example.restaurantpos.ui.staff
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,6 +18,7 @@ import com.example.restaurantpos.util.Constant
 import com.example.restaurantpos.util.DataUtil
 import com.example.restaurantpos.util.SharedPreferencesUtils
 import com.example.restaurantpos.util.showToast
+import java.util.Calendar
 
 
 class UpdateStaffInfoFragment : Fragment() {
@@ -24,6 +26,10 @@ class UpdateStaffInfoFragment : Fragment() {
     private lateinit var viewModel: UserViewModel
     lateinit var binding: FragmentUpdateStaffInfoBinding
     lateinit var  accountEntity: AccountEntity
+    val calendar = Calendar.getInstance()
+    val startYear = calendar.get(Calendar.YEAR) - 20
+    val startMonth = calendar.get(Calendar.MONTH) - 5
+    val startDay = calendar.get(Calendar.DAY_OF_MONTH) - 10
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,8 +71,33 @@ class UpdateStaffInfoFragment : Fragment() {
                     binding.edtBirthday.setText(admin[0].account_birthday)
                     binding.edtPhone.setText(admin[0].account_phone)
                     binding.edtUserName.setText(admin[0].user_name)
+
+                    accountEntity = admin[0]
                 }
             }
+
+
+        binding.imgDate.setOnClickListener {
+            DatePickerDialog(
+                requireContext(),
+                DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
+                    val m = if (month < 10){
+                        "0"+ (month + 1)
+                    }else{
+                        (month + 1).toString()
+                    }
+
+                    val dOfM = if (dayOfMonth < 10){
+                        "0"+ (dayOfMonth)
+                    }else{
+                        (dayOfMonth).toString()
+                    }
+
+                    binding.edtBirthday.setText("$year/${m}/$dOfM")
+                },
+                startYear, startMonth, startDay
+            ).show()
+        }
 
         /** Update Button */
         binding.txtUpdate.setOnClickListener {

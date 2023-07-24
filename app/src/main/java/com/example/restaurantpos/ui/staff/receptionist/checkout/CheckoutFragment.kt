@@ -690,6 +690,8 @@ class CheckoutFragment : Fragment() {
             .observe(viewLifecycleOwner) {
                 if (it.size > 0) {
                     adapterCustomerInner.setListData(it as ArrayList<CustomerEntity>)
+                }else{
+                    adapterCustomerInner.setListData(ArrayList<CustomerEntity>())
                 }
             }
 
