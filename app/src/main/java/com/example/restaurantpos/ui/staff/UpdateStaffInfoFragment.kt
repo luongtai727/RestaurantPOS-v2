@@ -1,9 +1,11 @@
 package com.example.restaurantpos.ui.staff
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -14,12 +16,14 @@ import com.example.restaurantpos.ui.manager.user.UserViewModel
 import com.example.restaurantpos.util.Constant
 import com.example.restaurantpos.util.DataUtil
 import com.example.restaurantpos.util.SharedPreferencesUtils
+import com.example.restaurantpos.util.showToast
 
 
 class UpdateStaffInfoFragment : Fragment() {
 
     private lateinit var viewModel: UserViewModel
     lateinit var binding: FragmentUpdateStaffInfoBinding
+    lateinit var  accountEntity: AccountEntity
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -61,35 +65,50 @@ class UpdateStaffInfoFragment : Fragment() {
                     binding.edtBirthday.setText(admin[0].account_birthday)
                     binding.edtPhone.setText(admin[0].account_phone)
                     binding.edtUserName.setText(admin[0].user_name)
-                    /** Update Button */
-                    binding.txtUpdate.setOnClickListener {
-                        if (binding.edtStaffName.text.toString() != "") {
-                            admin[0].account_name = binding.edtStaffName.text.toString()
-                        }
-
-                        if (binding.edtUserName.text.toString() != "") {
-                            admin[0].account_birthday = binding.edtBirthday.text.toString()
-                        }
-
-                        if (binding.edtUserName.text.toString() != "") {
-                            admin[0].account_phone = binding.edtPhone.text.toString()
-                        }
-
-                        if (binding.edtUserName.text.toString() != "") {
-                            admin[0].user_name = binding.edtUserName.text.toString()
-                        }
-
-                        if (binding.edtPassword.text.toString() != "") {
-                            admin[0].password =
-                                DataUtil.convertToMD5(binding.edtPassword.text.toString()+ Constant.SECURITY_SALT)
-                        }
-
-                        viewModel.addUserAndCheckExist(requireContext(), admin[0])
-                        findNavController().popBackStack()
-                    }
                 }
             }
 
+        /** Update Button */
+        binding.txtUpdate.setOnClickListener {
+
+            val isNoEditUsername = accountEntity.account_name.equals(binding.edtStaffName.text.toString())
+
+            if (binding.edtStaffName.text.toString() != "") {
+                accountEntity.account_name = binding.edtStaffName.text.toString()
+            }
+
+            if (binding.edtUserName.text.toString() != "") {
+                accountEntity.account_birthday = binding.edtBirthday.text.toString()
+            }
+
+            if (binding.edtUserName.text.toString() != "") {
+                accountEntity.account_phone = binding.edtPhone.text.toString()
+            }
+
+            if (binding.edtUserName.text.toString() != "") {
+                accountEntity.user_name = binding.edtUserName.text.toString()
+            }
+
+            if (binding.edtPassword.text.toString() != "") {
+                accountEntity.password =
+                    DataUtil.convertToMD5(binding.edtPassword.text.toString()+ Constant.SECURITY_SALT)
+            }
+            viewModel.addUserAndCheckExist(requireContext(), accountEntity, isNoEditUsername)
+
+        }
+
+        viewModel.isDuplicate
+            .observe(viewLifecycleOwner) {
+                if (it){
+                    showToast("username already exists!")
+                }else{
+                    showToast("Account' information was updated successfully!")
+
+                    SharedPreferencesUtils.setAccountName(accountEntity.account_name)
+
+                    findNavController().popBackStack()
+                }
+            }
 
         // Value = 1 --> Receptionist gửi.
         // Value = 2 --> Kitchen gửi.
@@ -106,5 +125,9 @@ class UpdateStaffInfoFragment : Fragment() {
         if (requireArguments().getInt("updateStaffInfo", 1) == 2) {
 
         }
+    }
+
+    fun showToast(string: String) {
+        Toast.makeText(requireContext(), string, Toast.LENGTH_SHORT).show()
     }
 }

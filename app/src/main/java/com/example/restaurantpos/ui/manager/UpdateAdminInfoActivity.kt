@@ -1,8 +1,10 @@
 package com.example.restaurantpos.ui.manager
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModelProvider
 import com.example.restaurantpos.databinding.ActivityUpdateAccountInfoBinding
 import com.example.restaurantpos.db.entity.AccountEntity
@@ -13,10 +15,17 @@ import com.example.restaurantpos.util.DataUtil
 import com.example.restaurantpos.util.SharedPreferencesUtils
 import com.example.restaurantpos.util.openActivity
 import com.example.restaurantpos.util.showToast
+import java.util.Calendar
 
 class UpdateAdminInfoActivity : AppCompatActivity() {
     lateinit var binding: ActivityUpdateAccountInfoBinding
     private lateinit var viewModel: UserViewModel
+
+    val calendar = Calendar.getInstance()
+    val startYear = calendar.get(Calendar.YEAR) - 20
+    val startMonth = calendar.get(Calendar.MONTH) - 5
+    val startDay = calendar.get(Calendar.DAY_OF_MONTH) - 10
+    lateinit var  accountEntity: AccountEntity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +53,28 @@ class UpdateAdminInfoActivity : AppCompatActivity() {
             backToManager()
         }
 
+            binding.imgDate.setOnClickListener {
+                DatePickerDialog(
+                    this,
+                    DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
+                        val m = if (month < 10){
+                            "0"+ (month + 1)
+                        }else{
+                            (month + 1).toString()
+                        }
+
+                        val dOfM = if (dayOfMonth < 10){
+                            "0"+ (dayOfMonth)
+                        }else{
+                            (dayOfMonth).toString()
+                        }
+
+                        binding.edtBirthday.setText("$year/${m}/$dOfM")
+                    },
+                    startYear, startMonth, startDay
+                ).show()
+            }
+
         val accountId: Int = SharedPreferencesUtils.getAccountId()
         viewModel.getAccountById(accountId)
             .observe(this) { admin: MutableList<AccountEntity> ->
@@ -52,33 +83,46 @@ class UpdateAdminInfoActivity : AppCompatActivity() {
                     binding.edtBirthday.setText(admin[0].account_birthday)
                     binding.edtPhone.setText(admin[0].account_phone)
                     binding.edtUserName.setText(admin[0].user_name)
-                    /** Update Button */
-                    binding.txtUpdate.setOnClickListener {
-                        if (binding.edtAdminName.text.toString() != "") {
-                            admin[0].account_name = binding.edtAdminName.text.toString()
-                        }
 
-                        if (binding.edtUserName.text.toString() != "") {
-                            admin[0].account_birthday = binding.edtBirthday.text.toString()
-                        }
+                    accountEntity = admin[0]
+                }
+            }
 
-                        if (binding.edtUserName.text.toString() != "") {
-                            admin[0].account_phone = binding.edtPhone.text.toString()
-                        }
+        binding.txtUpdate.setOnClickListener {
+           val isNoEditUsername = accountEntity.user_name.equals(binding.edtUserName.text.toString())
 
-                        if (binding.edtUserName.text.toString() != "") {
-                            admin[0].user_name = binding.edtUserName.text.toString()
-                        }
+            if (binding.edtAdminName.text.toString() != "") {
+                accountEntity.account_name = binding.edtAdminName.text.toString()
+            }
 
-                        if (binding.edtPassword.text.toString() != "") {
-                            admin[0].password =
-                                DataUtil.convertToMD5(binding.edtPassword.text.toString()+ Constant.SECURITY_SALT)
-                        }
+            if (binding.edtUserName.text.toString() != "") {
+                accountEntity.account_birthday = binding.edtBirthday.text.toString()
+            }
 
-                        viewModel.addUser(this@UpdateAdminInfoActivity, admin[0])
-                        showToast("Account' information was updated successfully!")
-                        backToManager()
-                    }
+            if (binding.edtUserName.text.toString() != "") {
+                accountEntity.account_phone = binding.edtPhone.text.toString()
+            }
+
+            if (binding.edtUserName.text.toString() != "" ) {
+                accountEntity.user_name = binding.edtUserName.text.toString()
+            }
+
+            if (binding.edtPassword.text.toString() != "") {
+                accountEntity.password =
+                    DataUtil.convertToMD5(binding.edtPassword.text.toString()+ Constant.SECURITY_SALT)
+            }
+
+            viewModel.addUserAndCheckExist(this@UpdateAdminInfoActivity, accountEntity, isNoEditUsername)
+        }
+
+        viewModel.isDuplicate
+            .observe(this) {
+                if (it){
+                    showToast("username already exists!")
+                }else{
+                    showToast("Account' information was updated successfully!")
+                    SharedPreferencesUtils.setAccountName(accountEntity.account_name)
+                    backToManager()
                 }
             }
     }

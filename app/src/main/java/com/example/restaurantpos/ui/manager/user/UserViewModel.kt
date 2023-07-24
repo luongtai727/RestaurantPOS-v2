@@ -26,7 +26,6 @@ class UserViewModel : ViewModel() {
     fun getStaffByName(staffName: String) =DatabaseUtil.getStaffByName(staffName)
     fun getAccountById(account_id: Int)  =DatabaseUtil.getAccountById(account_id)
 
-
     fun addUser(context: Context, user: AccountEntity) {
         CoroutineScope(Dispatchers.IO).launch {
             PosRoomDatabase.getInstance(context).accountDAO().addAccount(user)
@@ -39,13 +38,18 @@ class UserViewModel : ViewModel() {
 
     val isDuplicate: LiveData<Boolean> = _isDuplicate
 
-    fun addUserAndCheckExist(context: Context, user: AccountEntity) {
+    fun addUserAndCheckExist(context: Context, user: AccountEntity, isNoEditUsername: Boolean = false) {
         CoroutineScope(Dispatchers.IO).launch {
-
             val existingAccountShift = PosRoomDatabase
                 .getInstance(context)
                 .accountDAO()
                 .getAccountByUsername(user.user_name)
+
+            if (isNoEditUsername){
+                PosRoomDatabase.getInstance(context).accountDAO().addAccount(user)
+                _isDuplicate.postValue(false)
+                return@launch
+            }
 
             if (existingAccountShift == null) {
                 // Nếu tài khoản chưa tồn tại, thêm vào cơ sở dữ liệu
